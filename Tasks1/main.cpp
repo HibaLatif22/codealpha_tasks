@@ -1,10 +1,12 @@
+//   CGPA CALCULATOR
 #include <iostream>
 #include <cctype>
 #include <vector>
 #include <iomanip>
 
 using namespace std;
-class Courses{  // represents the single course info
+// Represents a single course's information (name, credit hours, grade, etc.)
+class Courses{  
 private:
     string courseName;
     int creditHrs;
@@ -68,6 +70,7 @@ public:
     };
 
 class Semester{
+    // Holds multiple courses and calculates semester GPA
 private:
     vector<Courses> courses;
     double semGradePoints;
@@ -109,6 +112,7 @@ public:
    };
 
 class CGPA_calculator{
+// Combines all semesters to calculate overall CGPA
 private:
     vector<Semester> sem;
     int overall_CreditHrs;
@@ -156,7 +160,7 @@ public:
 
      };
 
-
+//===============MAIN FUNCTION================
 int main()
 {
     cout<<"\033[33m========================================================="<<endl;
