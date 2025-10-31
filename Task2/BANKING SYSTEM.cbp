@@ -1,40 +1,472 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<CodeBlocks_project_file>
-	<FileVersion major="1" minor="6" />
-	<Project>
-		<Option title="BANKING SYSTEM" />
-		<Option pch_mode="2" />
-		<Option compiler="gcc" />
-		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/BANKING SYSTEM" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
-			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/BANKING SYSTEM" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-		</Build>
-		<Compiler>
-			<Add option="-Wall" />
-			<Add option="-fexceptions" />
-		</Compiler>
-		<Unit filename="main.cpp" />
-		<Extensions>
-			<lib_finder disable_auto="1" />
-		</Extensions>
-	</Project>
-</CodeBlocks_project_file>
+//BANK MANAGEMENT SYSTEM
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+int nextCustomerID=1;
+int nextAccountNo=1001;
+int nextTransactionID=1;
+
+string getCustomerId(){
+   return  "CUST-77" + to_string(nextCustomerID++);
+
+   }
+
+string getAccountNo(){
+   return "PK-ACC-" + to_string(nextAccountNo++);
+
+   }
+
+string getTransactionID(){
+   return "TXN-77" + to_string(nextTransactionID++);
+
+   }
+
+class Customer{
+private:
+    string name;
+    string password;
+    string email;
+    string phone_no;
+    string address;
+    string CustomerID;
+public:
+    void inputDetails(){
+       cin.ignore();
+       cout<<"Enter the name :"<<endl;
+       getline(cin,name);
+       cout<<"Enter the password :"<<endl;
+       getline(cin,password);
+       cout<<"Enter the Email :"<<endl;
+       getline(cin,email);
+       cout<<"Enter the Phone no :"<<endl;
+       getline(cin,phone_no);
+       cout<<"Enter the address :"<<endl;
+       getline(cin,address);
+       }
+
+
+    void addCustomer(){
+
+     CustomerID = getCustomerId();
+     ofstream outFile("customer.txt",ios::app);
+     if(!outFile){
+        cout<<"Error: Could not open customer.txt file. Please check if it exists "<<endl;
+        return;
+        }
+     outFile <<"*"<<CustomerID<<"*"<<name<<"|"<<password<<"|"<<email<<"|"<<phone_no<<"|"<<address<<endl;
+     outFile.close();
+     cout<<"\n\033[32m Customer added successfully !\033[0m"<<endl;
+     cout<<"Your customer ID = "<<CustomerID<<endl;
+
+      }
+     };
+
+
+class Transaction{
+private:
+     string t_id;
+     string acc_type;
+     string to_acc, from_acc;
+     double amount;
+public:
+     Transaction() {}
+     Transaction( string a_type, string t_acc, string f_acc, double amt){
+          t_id = getTransactionID();
+          acc_type = a_type;
+          to_acc = t_acc;
+          from_acc = f_acc;
+          amount = amt;
+          }
+
+      void record_transactions(){
+          ofstream outFile("transaction.txt",ios::app);
+          if(!outFile){
+             cout<<"Error: Could not open transaction.txt file. Please check if it exists"<<endl;
+          }
+          outFile <<t_id <<"|"<<acc_type<<"|"<<from_acc<<"|"<<to_acc<<"|"<<amount<<endl;
+          outFile.close();
+
+          }
+      void view_transaction_history(){
+          ifstream inFile("transaction.txt");
+          if(!inFile){
+              cout<<"File opening error "<<endl;
+              return;
+          }
+         cout<<left<<setw(25)<<"Transaction_ID"<<setw(15)<<"Acc_Type"<<setw(15)<<"From_ACC"<<setw(15)<<"To_Acc"<<setw(15)<<"Amount"<<endl;
+         cout<<"-----------------------------------------------------------------------"<<endl;
+         string tid,a_type, f_acc,t_acc;
+         double amt;
+         string line;
+         while(getline(inFile,line)){
+             replace(line.begin(),line.end(),'|',' ');
+             stringstream ss(line);
+             ss >> tid >> a_type >> f_acc >> t_acc >> amt;
+             cout<<left<<setw(20) <<tid<<setw(15)<<a_type<<setw(15)<<f_acc<<setw(15)<<t_acc<<setw(15)<<amt<<endl;
+              }
+
+         inFile.close();
+     }
+     };
+class Account{
+private:
+   string account_no;
+   double balance=0.0;
+   string cus_id;
+
+public:
+    void openAccount(){
+      cout<<"Enter customer ID :"<<endl;
+      cin>>cus_id;
+      ifstream inFile("customer.txt");
+      if(!inFile){
+         cout<<"Error: Could not open customer.txt file. Please check if it exists "<<endl;
+         return;
+      }
+
+      string line;
+      bool found=false;
+      while(getline(inFile,line)){
+
+           if(line.find("*" +cus_id+"*")!= string::npos){
+                found=true;
+                break;
+                 }  }
+            inFile.close();
+
+      if(found){
+            account_no = getAccountNo();
+            cout<<" \033[32mAccount is created successfully !\033[0m"<<endl;
+            cout<<" Your account no is= "<<account_no<<endl;
+            ofstream accFile("account.txt",ios::app);
+            if(!accFile){
+               cout<<"Error: Could not open account.txt file. Please check if it exists "<<endl;
+               return;  }
+
+            accFile <<account_no <<" " <<cus_id<<" "<<balance<<endl;
+            accFile.close();
+                 }
+       else{
+            cout<<"Invalid customer ID or Customer does not exists.\n please Try Again! "<<endl;
+            return;
+                 }
+             }
+
+
+    void deposit(){
+       double amount;
+       string acc_no;
+       cout<<"Enter account no :"<<endl;
+       cin>>acc_no;
+       cout<<"Enter amount to deposit : "<<endl;
+       cin>>amount;
+       if(amount <=0){
+          cout<<"Amount must be greater than 0!"<<endl;
+          return;
+       }
+       ifstream inFile("account.txt");
+       if(!inFile){
+         cout<<"Error: Could not open account.txt file. Please check if it exists."<<endl;
+         return;
+      }
+       ofstream temp("temp.txt");
+       string file_acc, cus_id;
+       double bal;
+       bool found =false;
+       while(inFile >> file_acc >> cus_id >> bal) {
+
+        if(file_acc == acc_no){
+
+                bal += amount;
+                found= true;
+                cout<<"\033[32m Deposit successful !\033[0m \n New Balance = "<< bal<<endl;
+                Transaction t("Deposit","-----",acc_no,amount);
+                t.record_transactions();
+        }
+        temp<< file_acc <<" "<<cus_id<<" "<<bal<<endl;
+        break;
+         }
+        inFile.close();
+        temp.close();
+
+        remove("account.txt");
+        rename("temp.txt" ,"account.txt");
+
+        if(!found){
+             cout<<"Account not found. "<<endl;
+        }
+
+       }
+
+    void withdraw(){
+
+         double amount;
+         string acc_no;
+         cout<<"Enter account no :"<<endl;
+         cin>>acc_no;
+         cout<<"Enter amount to withdraw : "<<endl;
+         cin>>amount;
+         if (amount <= 0) {
+             cout << "Amount must be greater than 0!" << endl;
+             return;
+}
+         ifstream inFile("account.txt");
+         if(!inFile){
+            cout<<"Error: Could not open account.txt file. Please check if it exists "<<endl;
+            return;
+      }
+         ofstream temp("temp.txt");
+         string file_acc, cus_id;
+         double bal;
+         bool found =false;
+         while(inFile >> file_acc >> cus_id >> bal) {
+
+         if(file_acc == acc_no){
+             if(bal >= amount){
+                bal -= amount;
+                cout<<"\033[32m Withdraw successful !\033[0m \n Remaining Balance = "<< bal<<endl;
+                Transaction t("Withdraw","-----",acc_no,amount);
+                t.record_transactions();
+                }
+
+              else{
+                 cout<<"Insufficient balance"<<endl;
+              }
+              found=true;
+         }
+         temp<<file_acc <<" "<<cus_id<<" "<<bal<<endl;
+         break;
+        }
+
+        inFile.close();
+        temp.close();
+
+        remove("account.txt");
+        rename("temp.txt" ,"account.txt");
+
+        if(!found){
+             cout<<"Account not found. "<<endl;
+        }
+       }
+
+    bool isActive(){
+          return balance>0;   }
+
+    void account_info(){
+
+        string acc_no;
+        cout<<"Enter account no :"<<endl;
+        cin>>acc_no;
+        ifstream inFile("account.txt");
+        string file_acc, cus_id;
+        double bal;
+        bool found=false;
+        while(inFile >>file_acc>> cus_id>>bal){
+             if(file_acc==acc_no){
+                cout<<"Account Number = "<<file_acc<<endl;
+                cout<<"Customer ID = "<<cus_id<<endl;
+                cout<<"Balance = "<<bal<<endl;
+                found=true;
+                break;
+             }
+          }
+
+        inFile.close();
+        if(!found){
+            cout<<"Account not found "<<endl;
+        }
+        }
+
+    void TransferFunds(){
+        string from_acc, to_acc;
+        double amount;
+        cout<<"Enter From Account No. ="<<endl;
+        cin>>from_acc;
+        cout<<"Enter To Account No. ="<<endl;
+        cin>>to_acc;
+        cout<<"Enter Amount to transfer = "<<endl;
+        cin>>amount;
+        if (amount <= 0) {
+           cout << "Amount must be greater than 0!" << endl;
+           return;
+}
+
+
+        bool fromFound=false , toFound=false;
+        double fromBal=0, toBal=0;
+        string file_acc, cus_id;
+        double bal;
+        ifstream check("account.txt"); // check if both accounts exist
+        while( check >> file_acc >> cus_id >> bal){
+             if(file_acc == from_acc){
+                 fromFound= true;
+                 fromBal =bal;
+             }
+              if(file_acc == to_acc){
+                 toFound= true;
+                 toBal =bal;
+             }
+        }
+        check.close();
+        if(!fromFound || !toFound){
+            cout<<"One or Both accounts are not found !"<<endl;
+            return;
+        }
+        if(fromBal < amount){
+            cout<<"Insufficent Balance! "<<endl;
+            return;
+                      }
+        if(from_acc == to_acc){
+            cout<<"Cannot transfer to the same account!\n";
+           return;
+          }
+
+        ifstream inFile("account.txt");
+        ofstream temp("temp.txt");
+
+        while(inFile >>file_acc>>cus_id>>bal){
+            if(file_acc == from_acc){
+                bal -=amount; //deduct amount from sender
+            }
+            else if(file_acc == to_acc){
+                bal +=amount;
+            }
+            temp <<file_acc<<" " <<cus_id<<" "<<bal<<endl;
+        }
+
+        inFile.close();
+        temp.close();
+
+        remove("account.txt");
+        rename("temp.txt", "account.txt");
+        cout<<"\033[32m Transfer successful !\033[0m"<<endl;
+        Transaction t("Transfer", from_acc, to_acc, amount);
+        t.record_transactions();
+
+
+        }
+
+    };
+
+void printHeader(string title){
+    cout << " \033[33m\n--------------------------------------------------------------\n";
+    cout << setw(45) << right << title << endl;
+    cout << "---------------------------------------------------------------\033[0m \n";
+
+  }
+void showmenu(){
+  cout<<"\033[36m======================================================================="<<endl;
+  cout<<"                   BANKING MANAGEMENT SYSTEM                              "<<endl;
+  cout<<"======================================================================="<<endl;
+  cout<<" [1]. Create New Customer   "<<endl;
+  cout<<" [2]. Open New Account      "<<endl;
+  cout<<" [3]. Deposit Money         "<<endl;
+  cout<<" [4]. Withdraw Money        "<<endl;
+  cout<<" [5]. Transfer Funds        "<<endl;
+  cout<<" [6]. View Account Information    "<<endl;
+  cout<<" [7]. View Transaction History    "<<endl;
+  cout<<" [8]. Exit       \033[0m"<<endl;    }
+void menu(){
+  int choice;
+  Account a1;
+  Customer c1;
+  Transaction t1;
+
+  while(true){
+    system("cls");
+    showmenu();
+    cout<<"Enter the Choice :"<<endl;
+
+    while (!(cin >> choice)) {
+      cout << "\033[31m Please enter a correct choice: \033[0m ";
+      cin.clear();
+      cin.ignore(INT_MAX, '\n');
+}
+
+   switch(choice){
+
+    case 1:
+        {
+        printHeader("Create New Customer");
+        c1.inputDetails();
+        c1.addCustomer();
+        system("pause");
+        break;   }
+
+    case 2: {
+        system("cls");
+        showmenu();
+        printHeader("Open Account");
+        a1.openAccount();
+        system("pause");
+        break;  }
+
+    case 3: {
+        system("cls");
+        showmenu();
+        printHeader("Deposit Money");
+        a1.deposit();
+        system("pause");
+        break;  }
+
+    case 4: {
+        system("cls");
+        showmenu();
+        printHeader("Withdraw Money");
+        a1.withdraw();
+        system("pause");
+        break;  }
+
+    case 5:{
+        system("cls");
+        showmenu();
+        printHeader("Transfer Money");
+        a1.TransferFunds();
+        system("pause");
+        break;
+        }
+
+    case 6:{
+        system("cls");
+        showmenu();
+        printHeader("Account Information");
+        a1.account_info();
+        system("pause");
+        break;
+        }
+
+    case 7:{
+        system("cls");
+        showmenu();
+        printHeader("Transaction History");
+        t1.view_transaction_history();
+        system("pause");
+        break;
+        }
+    case 8:{
+        cout<<"Thanks for using BOP Bank! "<<endl;
+        return; }
+
+    default: {
+        cout<<"Invalid choice "<<endl;
+        system("pause");
+        break; }
+
+     }
+
+  }}
+
+int main()
+{
+    menu();
+    return 0;
+}
+//cout << "\n--- Transaction History for " << account_no << " ---\n";
+       // for (auto &t : transactions)
+       //     t.show();
